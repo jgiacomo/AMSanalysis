@@ -21,10 +21,10 @@ source("helperFunctions/NearestStdRuns.R")
 
 rundataFromRunlog <- function(){
     # Get runlog from user
-    if(.Platform$OS.type=="unix"){
-        runFile <- file.choose()
-    } else {
+    if(.Platform$OS.type=="windows"){
         runFile <- choose.files(caption="Select runlog", multi=FALSE)
+    } else {
+        runFile <- file.choose()
     }
     
     # Get laboratory name from user
@@ -57,24 +57,30 @@ rundataFromRunlog <- function(){
 rundataFromDataFrame <- function(){
     # Get data frame with run data
     dfName <- readline("Enter the name of the data frame:")
-    run.data <- get(dfName)
-    if(!is.data.frame(run.data)){
-        stop("That data frame does not exist.")
+    
+    rundata <- NULL
+    try(rundata <- get(dfName), silent=TRUE)
+    if(is.null(rundata)){
+        errorStr = paste("Data frame, ", dfName, ", does not exist.",sep="")
+        stop(errorStr)
     }
     
     # Check if the active field exists and set it if not.
-    if(is.null(run.data$active)){
-        run.data$active <- TRUE
+    if(is.null(rundata$active)){
+        rundata$active <- TRUE
     }
     
-    return(run.data)
+    return(rundata)
 }
 
 #-----Main---------------------------------------------------------------------
 
 # Prompt user for the source of the run data
+cat("Please choose a source for the run data:\n")
+cat(" 1 ---- runlog file\n")
+cat(" 2 ---- existing data frame\n")
 datasource <- as.numeric(readline(
-    "Enter 1 to retrieve data from a runlog file or 2 from a data frame:"
+    "Enter your choice:"
 ))
 
 if(datasource==1){
