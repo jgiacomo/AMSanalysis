@@ -13,7 +13,15 @@ NearestStdRuns <- function(df, run, standardPos, n=6){
     #     nearestStdRuns = a list of the nearest standard runs
     
     # Check that the run completion times are formatted as date times (POSIXlt)
-    try
+    if(!is(df$runTime, "POSIXlt")){
+        tryCatch({
+            df$runTime <- strptime(df$runTime, format='%c')
+        }, error = function(c) {
+            "Error: unable to coerce to POSIXlt in function NearestStdRuns()."
+        })
+    }
+    # Should move this to the NECtoRunData.R script. Also, this may not work
+    # as the strptime function may just return NA instead of throwing an error.
     
     
 }
