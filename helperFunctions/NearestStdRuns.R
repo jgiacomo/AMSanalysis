@@ -10,7 +10,10 @@ NearestStdRuns <- function(df, run, standardPos, n=6){
     #     n = number of nearest standard runs to find
     #
     # Outputs
-    #     nearestStdRuns = a list of the nearest standard runs
+    #     nearestStdRuns = a data frame of the nearest standard runs and the
+    #                      difference in time to the input run.
+    
+    library(dplyr)
     
     # Check that the run completion times are formatted as date times (POSIXlt)
     if(!is(df$runTime, "POSIXlt")){
@@ -23,5 +26,24 @@ NearestStdRuns <- function(df, run, standardPos, n=6){
     # Should move this to the NECtoRunData.R script. Also, this may not work
     # as the strptime function may just return NA instead of throwing an error.
     
+    # Check that run times are formatted as date times (POSIXlt) and exit if not
+    if(!is(df$runTime, "POSIXlt")){
+        stop("Error: runTime not of class POSIXlt in function NearestStdRuns.")
+    }
+    
+    # Parse out the standards data keeping only active runs
+    stdRuns <- df %>% filter(Pos in standardPos, active==TRUE)
+    # In case the run in question is a standard, remove it from the list
+    stdRuns <- stdRuns[stdRuns$Run != run,]
+    
+    # Find the run time for the run in question
+    smplRT <- df %>% filter(Run == run) %>% select(runTime)
+    
+    # Find the time differences (in seconds)
+    stdRuns$timeDiff <- abs(difftime(stdRuns$runTime, smplRT, units="secs"))
+    
+    # Find the nearest n standard runs to the run in question
+    nearestRunsIndex <- sort(stdRuns$timeDiff,index.return=TRUE)[[2]]
+    nearestRuns <- stdRuns[nearestRunsIndex,] %>% select(Run,timeDiff)
     
 }
