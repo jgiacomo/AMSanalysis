@@ -99,17 +99,17 @@ shinyServer(function(input, output, session) {
             ggtitle(pTitle) +
             geom_hline(aes(yintercept = mean(he14.13))) +
             geom_hline(aes(yintercept = mean(he14.13)+2*sd(he14.13)),
-                       color = "red", linetype=2) +
+                       color = "blue", linetype=2) +
             geom_text(aes(0,mean(he14.13)+2*sd(he14.13),
                           label="+2*sigma",vjust=-1,hjust=-0.5),
-                      parse=TRUE,color="red") +
+                      parse=TRUE,color="blue") +
             geom_hline(aes(yintercept = mean(he14.13)-2*sd(he14.13)),
-                       color = "red", linetype=2) +
+                       color = "blue", linetype=2) +
             geom_text(aes(0,mean(he14.13)-2*sd(he14.13),
                           label="-2*sigma",vjust=1.5,hjust=-0.5),
-                      parse=TRUE,color="red") +
+                      parse=TRUE,color="blue") +
             geom_point(data=exclude, shape=21, size=3,
-                       fill=NA, color="black", alpha=0.25) +
+                       fill=NA, color="red", alpha=0.75) +
             coord_cartesian(ylim = c(minY,maxY))
         
     })
