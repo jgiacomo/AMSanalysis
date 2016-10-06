@@ -64,14 +64,15 @@ NECtoRunData <- function(runlogFile, resultFile = NULL){
         # imported as a csv.
         
         # Remove trailing comma from every line
-        tmpFile <- readLines(inFile)
-        tmpFile <- str_replace(tmpFile, ',$', '')
+        tmpResult <- readLines(inFile)
+        tmpResult <- str_replace(tmpResult, ',$', '')
         
         # Create temporary csv file to create data frame from
-        writeLines(tmpFile, con="tmp.csv")
+        tmpFile <- tempfile(fileext = ".csv")
+        writeLines(tmpResult, con=tmpFile)
         colTypes <- "cccciiiiddddiiiiidddddddddd"
-        df <- read_csv("tmp.csv", col_names=FALSE, col_types=colTypes, skip=6)
-        file.remove("tmp.csv")  # clean up the temporary file
+        df <- read_csv(tmpFile, col_names=FALSE, col_types=colTypes, skip=6)
+        file.remove(tmpFile)  # clean up the temporary file
         colNames <- c("E", "index", "item", "dateTime", "group", "pos", "meas",
                       "numCycles", "le12C", "le13C", "he12C", "he13C",
                       "cntTotH", "cntTotS", "cntTotGT", "cnt4", "cnt5",
