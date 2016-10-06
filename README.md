@@ -30,11 +30,11 @@ the universal run data frame. This will have the form:
 | Label     | Char       | Sample label or identifier.               |
 | SmType    | Char       | Sample type, e.g. OX2, Blank, UNK         |
 | Cycles    | Int        | Number of cycles in the run.              |
-| RunTime   | Double     | Measurement seconds, live time corrected. |
 | DateTime  | POSIXct    | Date and time that run completed.         |
 | le12C     | Double     | The low energy 12C- current [uA].         |
 | he12C     | Double     | The high energy 12C+ current [uA].        |
 | he13C     | Double     | The high energy 13C+ current [nA].        |
+| Trans     | Double     | 12C transmission [%].                     |
 | Cnt14C    | Int        | The deadtime corrected 14C counts.        |
 | he13.12   | Double     | The 13C/12C ratio.                        |
 | he14.12   | Double     | The 14C/12C ratio.                        |
