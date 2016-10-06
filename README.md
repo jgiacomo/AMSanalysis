@@ -30,7 +30,7 @@ the universal run data frame. This will have the form:
 | Pos       | Int        | Position in sample wheel or magazine.     |
 | Label     | Char       | Sample label or identifier.               |
 | SmType    | Char       | Sample type, e.g. OX2, Blank, UNK         |
-| Cycles    | Int        | Number of cycles in the run.              |
+| numCycles | Int        | Number of cycles in the run.              |
 | DateTime  | POSIXct    | Date and time that run completed.         |
 | le12C     | Double     | The low energy 12C- current [uA].         |
 | he12C     | Double     | The high energy 12C+ current [uA].        |
@@ -40,6 +40,7 @@ the universal run data frame. This will have the form:
 | he13.12   | Double     | The 13C/12C ratio.                        |
 | he14.12   | Double     | The 14C/12C ratio.                        |
 | he14.13   | Double     | The 14C/13C ratio.                        |
+| active    | Logical    | The state of the run.                     |
 
 
 ## Removal of Outliers and Bad Measurement Data
