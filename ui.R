@@ -23,9 +23,20 @@ shinyUI(fluidPage(
         
         # Main Panel
         mainPanel(
-            plotOutput("runPlot", click = "runPlot_click"),
+            plotOutput("runPlot",
+                       click = "runPlot_click",
+                       brush = brushOpts(id="runPlot_brush",
+                                         resetOnNew = TRUE)),
             
-            actionButton("exclude_reset", "Reset"),
+            fluidRow(
+                column(4,
+                       actionButton("back", "Previous Sample"),
+                       actionButton("forward","Next Sample")
+                ),
+                column(6,
+                       actionButton("exclude_reset", "Re-activate All Runs")
+                )
+            ),
             
             h4("Statistics"),
             p(verbatimTextOutput("stats")),
