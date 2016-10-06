@@ -25,6 +25,7 @@ the universal run data frame. This will have the form:
 
 | Field     | Type       | Description                               |
 | --------- | ---------- | ----------------------------------------- |
+| Analysis  | Char       | Analysis ID (i.e. batch or magazine).     |
 | Run       | Char       | Unique run number.                        |
 | Pos       | Int        | Position in sample wheel or magazine.     |
 | Label     | Char       | Sample label or identifier.               |
