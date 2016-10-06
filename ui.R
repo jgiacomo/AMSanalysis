@@ -1,14 +1,14 @@
 library(shiny)
 
-sampleITNlist <- as.character(unique(run.data$LABEL))
+sampleITNlist <- as.character(unique(rundata$label))
 
 
 # Define UI for application
 shinyUI(fluidPage(
     
     # Application title
-    titlePanel(p(img(src="EZVS_Logo.png", height=50),
-                 "BioMICADAS Run Outlier Removal")
+    titlePanel(p(img(src="Accium_Full_Logo.png", height=80),
+                 "NEC Run Outlier Removal")
     ),
     
     # Sidebar
