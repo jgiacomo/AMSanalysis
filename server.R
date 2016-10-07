@@ -1,6 +1,10 @@
 library(shiny)
+library(DT)
 library(ggplot2)
 library(dplyr)
+
+source("helperFunctions/NECtoRunData.R")
+source("helperFunctions/numInputToIntegers.R")
 
 # For this to work you must create a data frame called 'rundata' with the
 # appropriate columns and column names. 'rundata' has to be an object in the R
@@ -8,19 +12,35 @@ library(dplyr)
 
 # be careful of any factors in rundata.
 # use <<- as rundata is outside of this shinyApp() environment (see R scoping)
-run.data <<- rundata
+#run.data <<- rundata
 
 # get the 14C/13C error estimate from counting statistics
-run.data$he14.13.error <- run.data$he14.13/sqrt(run.data$count14C)
+#run.data$he14.13.error <- run.data$he14.13/sqrt(run.data$count14C)
 
 # Define server logic required to draw a scatterplot of run data
 shinyServer(function(input, output, session) {
+    
+    # Turn the result.xls file chooser on/off
+    observeEvent(input$resultYN,
+                 if(input$resultYN=="Yes"){
+                     shinyjs::show(id="resultChooser", anim=TRUE)
+                 } else shinyjs::hide(id="resultChooser", anim=TRUE))
+    
+    # Get run data from input files
+    rundata <- reactive({
+        runlog <- input$runlog$datapath
+        result <- input$result$datapath
+        df <- NECtoRunData(runlog, result)
+        df$he14.13.error <- df$he14.13/sqrt(df$count14C)
+        return(df)
+    })
     
     # instantiate a reactive values object to hold run data
     vals <- reactiveValues()
     
     # get run data for the selected sample (pd)
     observeEvent(input$samplePicker,{
+        run.data <- rundata()
         vals$pd <- run.data %>% filter(label==input$samplePicker) %>%
                    dplyr::select(label,smType,run,he14.13,he14.13.error,active)
     })
@@ -33,19 +53,19 @@ shinyServer(function(input, output, session) {
         vals$pd$active <- xor(vals$pd$active, res$selected_)
         
         # write active values back to run.data
-        run.data[run.data$label==vals$pd$label,]$active <<- vals$pd$active
+        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
     })
     
     # toggle points that are brushed
     observeEvent(input$runPlot_brush,{
         res <- brushedPoints(vals$pd, input$runPlot_brush, allRows=TRUE)
         vals$pd$active <- xor(vals$pd$active, res$selected_)
-        run.data[run.data$label==vals$pd$label,]$active <<- vals$pd$active
+        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
     })
     
     # move to the previous sample in the select box
     observeEvent(input$back,{
-        labels <- unique(run.data$label)
+        labels <- unique(rundata()$label)
         currentRow <- which(labels==input$samplePicker)
         if(currentRow>1){
             newLabel <- labels[currentRow - 1]
@@ -56,7 +76,7 @@ shinyServer(function(input, output, session) {
     
     # move to next sample in select box
     observeEvent(input$forward,{
-        labels <- unique(run.data$label)
+        labels <- unique(rundata()$label)
         currentRow <- which(labels==input$samplePicker)
         if(currentRow<length(labels)){
             newLabel <- labels[currentRow + 1]
@@ -70,7 +90,7 @@ shinyServer(function(input, output, session) {
         vals$pd$active <- TRUE
         
         # write active values back to run.data
-        run.data[run.data$label==vals$pd$label,]$active <<- vals$pd$active
+        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
     })
     
     
@@ -122,9 +142,9 @@ shinyServer(function(input, output, session) {
         cat("Mean =", my_mean, "    Standard Deviation =", my_sd, "\n")
     })
     
-    output$runTable <- renderDataTable({
+    output$runTable <- DT::renderDataTable({
         
-        data <- run.data %>%
+        data <- rundata() %>%
             filter(label == input$samplePicker) %>%
             dplyr::mutate(he12C.uA = he12C*1e6, he13C.nA = he13C*1e9) %>%
             dplyr::select("Run"=run, "14C/13C"=he14.13,
@@ -133,5 +153,5 @@ shinyServer(function(input, output, session) {
                           "Transmission [%]"=trans12C
             )
         data
-    })
+    }, options=list(pageLength=25))
 })

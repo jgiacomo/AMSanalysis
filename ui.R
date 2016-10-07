@@ -1,46 +1,63 @@
 library(shiny)
+library(shinyjs)
 
 sampleITNlist <- as.character(unique(rundata$label))
 
 
 # Define UI for application
-shinyUI(fluidPage(
-    
-    # Application title
-    titlePanel(p(img(src="Accium_Full_Logo.png", height=80),
-                 "NEC Run Outlier Removal")
+shinyUI(tagList(
+  useShinyjs(),
+  navbarPage("NEC Data Analysis Program",
+    tabPanel("Data",
+         sidebarLayout(
+             sidebarPanel(
+                 fileInput("runlog", "Choose the runlog file"),
+                 radioButtons("resultYN", "Is there a result.xls file?",
+                              choices=c("Yes", "No"),
+                              selected="No", inline=TRUE),
+                 shinyjs::hidden(div(id="resultChooser",
+                     fileInput("result", "Choose the NEC result.xls file")
+                 )),
+                 br(),
+                 h4("Enter positions you want to analyze"),
+                 h5("e.g. '0-34, 38, 40' or 'all' for all samples"),
+                 textInput("runRows", label="",
+                           placeholder = "0-40, 50, 55")
+             ),
+             
+             mainPanel(
+                 DT::dataTableOutput("runDT")
+             )
+         )
     ),
     
-    # Sidebar
-    sidebarLayout(
-        sidebarPanel(
-            selectInput("samplePicker", "Sample", sampleITNlist),
-            
-            #uiOutput("RUNlist"),  # use the ui element described in server.R
-            
-            width = 2  # adjust sidebar panel width
-        ),
-        
-        # Main Panel
-        mainPanel(
-            plotOutput("runPlot",
-                       click = "runPlot_click",
-                       brush = brushOpts(id="runPlot_brush",
-                                         resetOnNew = TRUE)),
-            
-            fluidRow(
-                column(4,
-                       actionButton("back", "Previous Sample"),
-                       actionButton("forward","Next Sample")
-                ),
-                column(6,
-                       actionButton("exclude_reset", "Re-activate All Runs")
-                )
+    tabPanel("Outlier Removal",
+        sidebarLayout(
+            sidebarPanel(
+                selectInput("samplePicker", "Sample", sampleITNlist),
+                width = 2  # adjust sidebar panel width
             ),
             
-            h4("Statistics"),
-            p(verbatimTextOutput("stats")),
-            dataTableOutput("runTable")
-        )
-    )
-))
+            # Main Panel
+            mainPanel(
+                plotOutput("runPlot",
+                           click = "runPlot_click",
+                           brush = brushOpts(id="runPlot_brush",
+                                             resetOnNew = TRUE)),
+                
+                fluidRow(
+                    column(4,
+                           actionButton("back", "Previous Sample"),
+                           actionButton("forward","Next Sample")
+                    ),
+                    column(6,
+                           actionButton("exclude_reset", "Re-activate All Runs")
+                    )
+                ),
+                
+                h4("Statistics"),
+                p(verbatimTextOutput("stats")),
+                DT::dataTableOutput("runTable")
+            )
+        ))
+)))
