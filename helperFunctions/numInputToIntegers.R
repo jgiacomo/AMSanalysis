@@ -18,11 +18,11 @@ numInputToIntegers <- function(numText){
     sequences <- str_split(rangescomma,',')
     rangematrix <- sapply(sequences, function(x) seq(as.numeric(x[1]),
                                                      as.numeric(x[2])))
-    rangePos <- as.character(rangematrix)
+    rangePos <- as.character(unlist(rangematrix))
     
     finalPos <- c(positions, rangePos)
     
-    finalPos <- as.character(sort(as.numeric(finalPos)))
+    finalPos <- sort(as.integer(finalPos))
     
     return(finalPos)
 }
