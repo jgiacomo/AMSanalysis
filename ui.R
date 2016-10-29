@@ -1,7 +1,7 @@
 library(shiny)
 library(shinyjs)
 
-sampleITNlist <- as.character(unique(rundata$label))
+#sampleITNlist <- as.character(unique(rundata$label))
 
 
 # Define UI for application
@@ -34,7 +34,7 @@ shinyUI(tagList(
     tabPanel("Outlier Removal",
         sidebarLayout(
             sidebarPanel(
-                selectInput("samplePicker", "Sample", sampleITNlist),
+                selectInput("samplePicker", "Sample", c("sample 1","sample 2")),
                 width = 2  # adjust sidebar panel width
             ),
             

@@ -6,18 +6,7 @@ library(dplyr)
 source("helperFunctions/NECtoRunData.R")
 source("helperFunctions/numInputToIntegers.R")
 
-# For this to work you must create a data frame called 'rundata' with the
-# appropriate columns and column names. 'rundata' has to be an object in the R
-# session before this Shiny app will work.
-
-# be careful of any factors in rundata.
-# use <<- as rundata is outside of this shinyApp() environment (see R scoping)
-#run.data <<- rundata
-
-# get the 14C/13C error estimate from counting statistics
-#run.data$he14.13.error <- run.data$he14.13/sqrt(run.data$count14C)
-
-# Define server logic required to draw a scatterplot of run data
+# Define the server logic of our shiny app.
 shinyServer(function(input, output, session) {
     
     # Turn the result.xls file chooser on/off
@@ -27,22 +16,61 @@ shinyServer(function(input, output, session) {
                  } else shinyjs::hide(id="resultChooser", anim=TRUE))
     
     # Get run data from input files
-    rundata <- reactive({
+    # rundata <- reactive({
+    #     # Run once a runlog file is chosen
+    #     validate(
+    #         need(input$runlog, "Please choose a runlog")
+    #     )
+    #     runlog <- input$runlog$datapath
+    #     result <- input$result$datapath
+    #     df <- NECtoRunData(runlog, result)
+    #     df$he14.12.error <- df$he14.12/sqrt(df$count14C)
+    #     df$he14.13.error <- df$he14.13/sqrt(df$count14C)
+    #     return(df)
+    # })
+    observe({
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
         runlog <- input$runlog$datapath
         result <- input$result$datapath
         df <- NECtoRunData(runlog, result)
+        df$he14.12.error <- df$he14.12/sqrt(df$count14C)
         df$he14.13.error <- df$he14.13/sqrt(df$count14C)
-        return(df)
+        rundata <<- df  # <<- because rundata is outside the server function
+        
+        # Update the sample selection now that we have rundata.
+        updateSelectInput(session, inputId="samplePicker",
+                          label="Sample",
+                          choices=as.character(unique(rundata$pos)))
     })
     
-    # instantiate a reactive values object to hold run data
+    # Show run data from choosen runlog.
+    output$runDT <- DT::renderDataTable({
+        # Check if the runlog has been loaded.
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
+        
+        data <- rundata %>%
+            group_by(pos, label, smType) %>%
+            summarize(runs=n(),he13C=round(mean(he13C)*1e9,1))
+        
+        data
+    }, options=list(pageLength=15), rownames=FALSE)
+    
+    # instantiate a reactive values object to hold a sample's run data.
     vals <- reactiveValues()
     
-    # get run data for the selected sample (pd)
+    # get run data for the selected sample (pd, for plot data)
     observeEvent(input$samplePicker,{
-        run.data <- rundata()
-        vals$pd <- run.data %>% filter(label==input$samplePicker) %>%
-                   dplyr::select(label,smType,run,he14.13,he14.13.error,active)
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
+        
+        vals$pd <- rundata %>% filter(pos==input$samplePicker) %>%
+                   dplyr::select(pos,label,smType,run,he14.13,
+                                 he14.13.error,active)
     })
     
     # toggle points that are clicked
@@ -52,37 +80,15 @@ shinyServer(function(input, output, session) {
         
         vals$pd$active <- xor(vals$pd$active, res$selected_)
         
-        # write active values back to run.data
-        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
+        # write active values back to rundata
+        rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
     })
     
     # toggle points that are brushed
     observeEvent(input$runPlot_brush,{
         res <- brushedPoints(vals$pd, input$runPlot_brush, allRows=TRUE)
         vals$pd$active <- xor(vals$pd$active, res$selected_)
-        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
-    })
-    
-    # move to the previous sample in the select box
-    observeEvent(input$back,{
-        labels <- unique(rundata()$label)
-        currentRow <- which(labels==input$samplePicker)
-        if(currentRow>1){
-            newLabel <- labels[currentRow - 1]
-            updateSelectInput(session=session, inputId="samplePicker",
-                              selected = newLabel)
-        }
-    })
-    
-    # move to next sample in select box
-    observeEvent(input$forward,{
-        labels <- unique(rundata()$label)
-        currentRow <- which(labels==input$samplePicker)
-        if(currentRow<length(labels)){
-            newLabel <- labels[currentRow + 1]
-            updateSelectInput(session=session, inputId="samplePicker",
-                              selected = newLabel)
-        }
+        rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
     })
     
     # reset all points
@@ -90,14 +96,39 @@ shinyServer(function(input, output, session) {
         vals$pd$active <- TRUE
         
         # write active values back to run.data
-        rundata()[rundata()$label==vals$pd$label,]$active <<- vals$pd$active
+        rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+    })
+    
+    # move to the previous sample in the select box
+    observeEvent(input$back,{
+        positions <- unique(rundata$pos)
+        currentRow <- which(positions==input$samplePicker)
+        if(currentRow>1){
+            newPosition <- positions[currentRow - 1]
+            updateSelectInput(session=session, inputId="samplePicker",
+                              selected = newPosition)
+        }
+    })
+    
+    # move to next sample in select box
+    observeEvent(input$forward,{
+        positions <- unique(rundata$pos)
+        currentRow <- which(positions==input$samplePicker)
+        if(currentRow<length(positions)){
+            newPosition <- positions[currentRow + 1]
+            updateSelectInput(session=session, inputId="samplePicker",
+                              selected = newPosition)
+        }
     })
     
     
-    
     output$runPlot <- renderPlot({
-        
         # Plot the run 14C/12C (d13C normalized) data for the chosen sample
+        
+        # Check if the runlog has been loaded.
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
         
         # plot kept and excluded points as two separate data sets
         keep    <- vals$pd[ vals$pd$active, , drop=FALSE]
@@ -108,7 +139,9 @@ shinyServer(function(input, output, session) {
         sdY <- sd(vals$pd$he14.13)
         maxY <- max(mnY+4*sdY, max(vals$pd$he14.13)*1.02)
         minY <- min(mnY-4*sdY, min(vals$pd$he14.13)*0.98)
-        pTitle <- paste(vals$pd[1,]$label, vals$pd[1,]$smType, sep=" - ")
+        pTitle <- paste("Pos: ", vals$pd[1,]$pos,
+                        " - ", vals$pd[1,]$smType,
+                        "      Label: ", vals$pd[1,]$label, sep="")
         
         ggplot(keep, aes(x=run,y=he14.13)) + geom_point(size=3) +
             geom_errorbar(
@@ -135,6 +168,10 @@ shinyServer(function(input, output, session) {
     })
     
     output$stats <- renderPrint({
+        # Check if the runlog has been loaded.
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
         
         y <- vals$pd[vals$pd$active,]$he14.13
         my_mean <- format(mean(y), digits = 4)
@@ -143,9 +180,13 @@ shinyServer(function(input, output, session) {
     })
     
     output$runTable <- DT::renderDataTable({
+        # Check if the runlog has been loaded.
+        validate(
+            need(input$runlog, "Please choose a runlog file.")
+        )
         
-        data <- rundata() %>%
-            filter(label == input$samplePicker) %>%
+        data <- rundata %>%
+            filter(pos == input$samplePicker) %>%
             dplyr::mutate(he12C.uA = he12C*1e6, he13C.nA = he13C*1e9) %>%
             dplyr::select("Run"=run, "14C/13C"=he14.13,
                           "error"=he14.13.error, "13C/12C"=he13.12,
