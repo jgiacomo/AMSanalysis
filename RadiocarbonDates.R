@@ -153,13 +153,18 @@ if(cb.answer=="1"){
 # Setup new columns
 run.data$std.runs <- NA
 run.data$d13C <- NA
+run.data$he14.13.mb <- NA
+run.data$he14.13.mb.error <- NA
 run.data$he14.13.d13C <- NA
 run.data$he14.13.d13C.error <- NA
 run.data$pMC <- NA
 run.data$pMC.error <- NA
 
-# Subtract the machine blank
-run.data$he14.13.mb <- run.data$he14.13 - mb.ratio
+# Subtract the machine blank, but not from the machine blank.
+run.data[!(run.data$pos %in% mb.pos),]$he14.13.mb <-
+    run.data[!(run.data$pos %in% mb.pos),]$he14.13 - mb.ratio
+run.data[run.data$pos %in% mb.pos,]$he14.13.mb <-
+    run.data[run.data$pos %in% mb.pos,]$he14.13
 run.data$he14.13.error.mb <- run.data$he14.13.error
 
 # For each run, find the nearest standard runs and d13C values
