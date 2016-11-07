@@ -208,16 +208,28 @@ for(i in 1:nrow(run.data)){
     std.results <- wt.summary(std.data$he14.13.d13C,
                               std.data$he14.13.d13C.error)
     
-    run.data[i,]$pMC <- (run.data[i,]$he14.13.d13C - cb.ratio) /
-                        (std.results[[1]] - cb.ratio) / kOX2ModernFactor * 100
-    
-    run.data[i,]$pMC.error <- sqrt(
-        (run.data[i,]$he14.13.d13C.error/(std.results[[1]]-cb.ratio) /
-             kOX2ModernFactor)^2 +
-        (std.results[[2]]*(run.data[i,]$he14.13.d13C-cb.ratio) /
-             kOX2ModernFactor / (std.results[[1]]-cb.ratio)^2)^2 +
-        (cb.error/cb.ratio)^2
-    )
+    if(!(run.data[i,]$pos %in% c(mb.pos, cb.pos))){
+        run.data[i,]$pMC <- (run.data[i,]$he14.13.d13C - cb.ratio) /
+            (std.results[[1]] - cb.ratio) / kOX2ModernFactor * 100
+        
+        run.data[i,]$pMC.error <- sqrt(
+            (run.data[i,]$he14.13.d13C.error/(std.results[[1]]-cb.ratio) /
+                 kOX2ModernFactor)^2 +
+                (std.results[[2]]*(run.data[i,]$he14.13.d13C-cb.ratio) /
+                     kOX2ModernFactor / (std.results[[1]]-cb.ratio)^2)^2 +
+                (cb.error/cb.ratio)^2
+        )
+    } else{
+        run.data[i,]$pMC <- (run.data[i,]$he14.13.d13C) /
+            (std.results[[1]]) / kOX2ModernFactor * 100
+        
+        run.data[i,]$pMC.error <- sqrt(
+            (run.data[i,]$he14.13.d13C.error/(std.results[[1]]) /
+                 kOX2ModernFactor)^2 +
+                (std.results[[2]]*(run.data[i,]$he14.13.d13C) /
+                     kOX2ModernFactor / (std.results[[1]])^2)^2
+        )
+    }
 }
 
 # Compute final results
