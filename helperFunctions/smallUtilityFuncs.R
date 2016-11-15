@@ -36,5 +36,5 @@ wt.summary <- function(x, error){
     # weighted standard deviation of x.
     mn <- wt.mean(x, 1/error^2)
     stdev <- wt.sd(x, 1/error^2)
-    return(list(mn,stdev))
+    return(list("mean"=mn,"sd"=stdev))
 }
