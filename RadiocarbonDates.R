@@ -125,7 +125,8 @@ if(mb.answer=="1"){
                          run.data[run.data$pos %in% mb.pos,]$he14.13.error)[[1]]
 } else if(mb.answer=="2"){
     cat("Enter the 14C/12C or 14C/13C ratio for the machine blank\n")
-    mb.ratio <- readline("Ratio:")
+    mb.ratio <- as.numeric(readline("Ratio:"))
+    mb.pos <- 1000  # Unrealistic position since there is presumably no MB.
 } else if(mb.answer=="3"){
     mb.ratio <- 0
 } else {
