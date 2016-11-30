@@ -44,7 +44,8 @@ NECtoRunData <- function(runlogFile, resultFile = NULL){
         df$le12C    <- NA     # Only available in results.xls.
         df$trans12C <- NA     # Only available in results.xls.
         df$active   <- TRUE   # Initially we make all runs active.
-        df$run      <- paste(df$analysis, df$pos, df$meas, sep="-")
+        df$run      <- paste(df$analysis, df$pos, sprintf("%02d",df$meas),
+                             sep="-")
         df$count14C <- df$cntTotGT
         
         # Now to adjust columns to those for the general rundata data frame.
@@ -91,7 +92,8 @@ NECtoRunData <- function(runlogFile, resultFile = NULL){
         batch <- str_extract(readLines(inFile, n=3)[3], '[bB]atch[^\\s]*')
         df$analysis <- batch  # This is the batch number or magazine number.
         df$active   <- TRUE   # Initially we make all runs active.
-        df$run      <- paste(df$analysis, df$pos, df$meas, sep="-")
+        df$run      <- paste(df$analysis, df$pos, sprintf("%02d",df$meas),
+                             sep="-")
         df$count14C <- df$cntTotGT
         
         # Now to adjust columns to those for the general rundata data frame.
