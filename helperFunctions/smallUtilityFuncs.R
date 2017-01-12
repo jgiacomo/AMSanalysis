@@ -38,3 +38,16 @@ wt.summary <- function(x, error){
     stdev <- wt.sd(x, 1/error^2)
     return(list("mean"=mn,"sd"=stdev))
 }
+
+
+decimals <- function(num){
+    # This function takes a number or vector of numbers and returns the number
+    # of decimal places the number contains. If a number is whole (no decimal)
+    # then it returns zero. Also, it will ignore any trailing zeroes.
+    if((num %% 1) != 0) {
+        nchar(strsplit(sub('0+$','',as.character(num)),
+                       ".",fixed=TRUE)[[1]][[2]])
+    } else {
+        return(0)
+    }
+}
