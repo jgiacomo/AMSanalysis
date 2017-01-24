@@ -13,6 +13,11 @@
     source(file.path(utilPath, "numInputToIntegers.R"))
     source(file.path(utilPath, "NearestStdRuns.R"))
     source(file.path(utilPath, "smallUtilityFuncs.R"))
+    
+# Call Shiny modules
+    modulePath <- "modules"  # path to shiny module files
+    source(file.path(modulePath, "runlogFileInput.R"))
+    source(file.path(modulePath, "runlogFile.R"))
 
 # Define global objects
     # rundata <- NA, this is not instatiated here because I don't want this to
@@ -25,8 +30,3 @@
     kElemQ <- 1.6022E-19  # elementary charge
     kVPDB <- 0.0112372  # Vienna PeeDee Belemnite standard 13C/12C ratio
     kOX2ModernFactor <- 0.7459 # Modern = this * normalized 14C/12C of standards
-    
-
-# Call shiny modules
-    
-    

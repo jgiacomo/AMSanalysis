@@ -3,69 +3,28 @@ library(DT)
 library(ggplot2)
 library(dplyr)
 
-source("helperFunctions/NECtoRunData.R")
-source("helperFunctions/numInputToIntegers.R")
-
 # Define the server logic of our shiny app.
 shinyServer(function(input, output, session) {
     
-    # Turn the result.xls file chooser on/off
-    observeEvent(input$resultYN,
-                 if(input$resultYN=="Yes"){
-                     shinyjs::show(id="resultChooser", anim=TRUE)
-                 } else shinyjs::hide(id="resultChooser", anim=TRUE))
+    positions <- callModule(runlogFile,"runlog")
     
-    # Get run data from input files
-    # rundata <- reactive({
-    #     # Run once a runlog file is chosen
-    #     validate(
-    #         need(input$runlog, "Please choose a runlog")
-    #     )
-    #     runlog <- input$runlog$datapath
-    #     result <- input$result$datapath
-    #     df <- NECtoRunData(runlog, result)
-    #     df$he14.12.error <- df$he14.12/sqrt(df$count14C)
-    #     df$he14.13.error <- df$he14.13/sqrt(df$count14C)
-    #     return(df)
-    # })
     observe({
         validate(
-            need(input$runlog, "Please choose a runlog file.")
+            need(positions(), "No positions")
         )
-        runlog <- input$runlog$datapath
-        result <- input$result$datapath
-        df <- NECtoRunData(runlog, result)
-        df$he14.12.error <- df$he14.12/sqrt(df$count14C)
-        df$he14.13.error <- df$he14.13/sqrt(df$count14C)
-        rundata <<- df  # <<- because rundata is outside the server function
-        
         # Update the sample selection now that we have rundata.
         updateSelectInput(session, inputId="samplePicker",
                           label="Sample",
-                          choices=as.character(unique(rundata$pos)))
+                          choices=as.character(positions()))
     })
-    
-    # Show run data from choosen runlog.
-    output$runDT <- DT::renderDataTable({
-        # Check if the runlog has been loaded.
-        validate(
-            need(input$runlog, "Please choose a runlog file.")
-        )
-        
-        data <- rundata %>%
-            group_by(pos, label, smType) %>%
-            summarize(runs=n(),he13C=round(mean(he13C)*1e9,1))
-        
-        data
-    }, options=list(pageLength=15), rownames=FALSE)
-    
+
     # instantiate a reactive values object to hold a sample's run data.
     vals <- reactiveValues()
     
     # get run data for the selected sample (pd, for plot data)
     observeEvent(input$samplePicker,{
         validate(
-            need(input$runlog, "Please choose a runlog file.")
+            need(positions(), "Please choose a runlog file.")
         )
         
         vals$pd <- rundata %>% filter(pos==input$samplePicker) %>%
@@ -99,6 +58,14 @@ shinyServer(function(input, output, session) {
         rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
     })
     
+    # deactivate all runs
+    observeEvent(input$exclude_all, {
+        vals$pd$active <- FALSE
+        
+        # write active values back to rundata
+        rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+    })
+    
     # move to the previous sample in the select box
     observeEvent(input$back,{
         positions <- unique(rundata$pos)
@@ -127,7 +94,7 @@ shinyServer(function(input, output, session) {
         
         # Check if the runlog has been loaded.
         validate(
-            need(input$runlog, "Please choose a runlog file.")
+            need(positions(), "Please choose a runlog file.")
         )
         
         # plot kept and excluded points as two separate data sets
@@ -170,7 +137,7 @@ shinyServer(function(input, output, session) {
     output$stats <- renderPrint({
         # Check if the runlog has been loaded.
         validate(
-            need(input$runlog, "Please choose a runlog file.")
+            need(positions(), "Please choose a runlog file.")
         )
         
         y <- vals$pd[vals$pd$active,]$he14.13
@@ -182,7 +149,7 @@ shinyServer(function(input, output, session) {
     output$runTable <- DT::renderDataTable({
         # Check if the runlog has been loaded.
         validate(
-            need(input$runlog, "Please choose a runlog file.")
+            need(positions(), "Please choose a runlog file.")
         )
         
         data <- rundata %>%

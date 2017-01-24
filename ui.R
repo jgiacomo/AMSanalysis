@@ -6,29 +6,9 @@ library(shinyjs)
 
 # Define UI for application
 shinyUI(tagList(
-  useShinyjs(),
   navbarPage("NEC Data Analysis Program",
     tabPanel("Data",
-         sidebarLayout(
-             sidebarPanel(
-                 fileInput("runlog", "Choose the runlog file"),
-                 radioButtons("resultYN", "Is there a result.xls file?",
-                              choices=c("Yes", "No"),
-                              selected="No", inline=TRUE),
-                 shinyjs::hidden(div(id="resultChooser",
-                     fileInput("result", "Choose the NEC result.xls file")
-                 )),
-                 br(),
-                 h4("Enter positions you want to analyze"),
-                 h5("e.g. '0-34, 38, 40' or 'all' for all samples"),
-                 textInput("runRows", label="",
-                           placeholder = "0-40, 50, 55")
-             ),
-             
-             mainPanel(
-                 DT::dataTableOutput("runDT")
-             )
-         )
+         runlogFileInput("runlog", "Runlog File")
     ),
     
     tabPanel("Outlier Removal",
@@ -51,7 +31,8 @@ shinyUI(tagList(
                            actionButton("forward","Next Sample")
                     ),
                     column(6,
-                           actionButton("exclude_reset", "Re-activate All Runs")
+                           actionButton("exclude_reset", "Reactivate All Runs"),
+                           actionButton("exclude_all", "Deactivate All Runs")
                     )
                 ),
                 
