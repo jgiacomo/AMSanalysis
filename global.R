@@ -18,6 +18,8 @@
     modulePath <- "modules"  # path to shiny module files
     source(file.path(modulePath, "runlogFileInput.R"))
     source(file.path(modulePath, "runlogFile.R"))
+    source(file.path(modulePath, "standardsInput.R"))
+    source(file.path(modulePath, "standards.R"))
 
 # Define global objects
     # rundata <- NA, this is not instatiated here because I don't want this to

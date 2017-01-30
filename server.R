@@ -7,6 +7,7 @@ library(dplyr)
 shinyServer(function(input, output, session) {
     
     positions <- callModule(runlogFile,"runlog")
+    callModule(standards,"standards",positions)
     
     observe({
         validate(

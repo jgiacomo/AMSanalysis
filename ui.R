@@ -1,14 +1,19 @@
 library(shiny)
 library(shinyjs)
-
-#sampleITNlist <- as.character(unique(rundata$label))
+library(shinythemes)
 
 
 # Define UI for application
 shinyUI(tagList(
-  navbarPage("NEC Data Analysis Program",
+  navbarPage(title=div(img(src="DirectAMS_logo.png",height="35",width="80"),
+                       "NEC Data Analysis Program"),
+             theme=shinytheme("spacelab"),
     tabPanel("Data",
          runlogFileInput("runlog", "Runlog File")
+    ),
+    
+    tabPanel("Standards",
+        standardsInput("standards", "Standard UI")
     ),
     
     tabPanel("Outlier Removal",
