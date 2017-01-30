@@ -13,6 +13,7 @@ kOX2ModernFactor <- 0.7459  # Modern = this * normalized 14C/12C of standards
 
 #-----Source external functions------------------------------------------------
 
+setwd("AMSanalysis/")
 source("helperFunctions/NEC_runlog_to_dataframe.R")
 source("helperFunctions/NearestStdRuns.R")
 

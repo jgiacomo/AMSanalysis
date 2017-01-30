@@ -147,6 +147,7 @@ if(cb.answer=="1"){
 } else if(cb.answer=="3"){
     cb.ratio <- 0
     cb.error <- 0
+    cb.pos <- 1000  # Unrealistic position since there is presumably no CB.
 } else {
     stop("Your answer was not recognised.")
 }
