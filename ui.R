@@ -7,7 +7,7 @@ library(shinythemes)
 shinyUI(tagList(
   navbarPage(title=div(img(src="DirectAMS_logo.png",height="35",width="80"),
                        "AMS Data Analysis Program"),
-             theme=shinytheme("spacelab"),
+             theme=shinytheme("cerulean"),
     tabPanel("Data",
          runlogFileInput("runlog", "Runlog File")
     ),
@@ -30,26 +30,22 @@ shinyUI(tagList(
                 fluidRow(
                     column(6,
                            wellPanel(
-                               plotOutput("C14Plot",
-                                          click = "C14Plot_click",
-                                          brush = brushOpts(id="C14Plot_brush",
-                                                            resetOnNew = TRUE))
+                               h5("Run 14C/13C Plot"),
+                               runPlotUI("C14","Plot 14C/13C")
                            )
                     ),
                     column(6,
-                           h4("d13C plot to go here.")
+                           wellPanel(
+                               h5("Run 13C/12C Plot"),
+                               runPlotUI("C13","Plot 13C/12C")
+                           )
                     )
                 ),
                 
                 fluidRow(
-                    column(6,
+                    column(3,offset=5,
                            actionButton("back", "Previous"),
-                           actionButton("forward","Next"),
-                           actionButton("exclude_reset", "Reactivate All"),
-                           actionButton("exclude_all", "Deactivate All")
-                    ),
-                    column(6,
-                           h4("Buttons")
+                           actionButton("forward","Next")
                     )
                 ),
                 
