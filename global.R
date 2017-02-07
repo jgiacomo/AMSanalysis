@@ -18,6 +18,8 @@
     modulePath <- "modules"  # path to shiny module files
     source(file.path(modulePath, "runlogFileInput.R"))
     source(file.path(modulePath, "runlogFile.R"))
+    source(file.path(modulePath, "runPlotUI.R"))
+    source(file.path(modulePath, "runPlot.R"))
     source(file.path(modulePath, "standardsInput.R"))
     source(file.path(modulePath, "standards.R"))
 
