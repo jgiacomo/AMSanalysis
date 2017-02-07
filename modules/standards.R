@@ -5,30 +5,39 @@
 library(shiny)
 library(dplyr)
 
-standards <- function(input, output, session, positions){
+standards <- function(input, output, session, rundf){
+    # rundf <reactive> the rundata.
     
-    # Clean the standards positions input to a numeric vector.
-    vals <- reactiveValues()
+    observe({validate(need(rundf(),"Please load data first."))})
     
-    observeEvent(input$stdPos,{
-        
-        # Check for rundata.
-        # if(!exists("rundata")){ return(NULL)}
-        validate(
-            need(positions(),"")
-        )
-        
-        # Get the standard positions.
-        standardPos <- numInputToIntegers(input$stdPos)
-        if(standardPos==""|standardPos=="all"){
-            standardPos <- unique(rundata[rundata$smType=="OX2",]$pos)
-        }
-        
-        print(standardPos)
-        vals$stdData <- rundata %>% filter(pos %in% standardPos)
+    # Update the sample type checkboxes.
+    observe({
+        smplTypes <- unique(rundf()$smType)
+        updateCheckboxGroupInput(session,"stdPicks",
+                                 choices=sort(smplTypes),
+                                 inline=TRUE,
+                                 selected=if("OX2" %in% smplTypes){
+                                     "OX2"
+                                 })
     })
     
+    # Get the standards from the rundata
+    df <- reactive({
+        # Get the standard positions.
+        standardPos <- numInputToIntegers(input$stdPos)
+        
+        # Use the checkboxes if no positions are entered.
+        if(standardPos==""|standardPos=="all"){
+            standardPos <- unique(rundf()[rundf()$smType %in% input$stdPicks,]$pos)
+        }
+        
+        # Filter the data to only the standards
+        filter(rundf(), pos %in% standardPos)
+    })
     
+    output$stdTable <- renderTable({
+        unique(select(df(), pos, smType, label))
+    })
 
-    return(NULL)
+    return(reactive({df}))
 }
