@@ -8,94 +8,95 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 
-runPlot <- function(input, output, session, positions, sample, Yval){
-    # positions is for checking that a runlog file has been loaded.
-    # sample is the position of the sample to plot.
-    # Yval is the data value to plot on the Y axis (14C/13C or 13C/12C).
+runPlot <- function(input, output, session, rundf, samPos, Yval){
+    # rundf <data frame, reactive> is the rundata.
+    # samPos <reactive> is the position of the sample to plot.
+    # Yval <char> is the data value to plot on the Y axis (14C/13C or 13C/12C).
     
     # Create a reactive value for storing data.
     vals <- reactiveValues()
     
-    # Get the data from the rundata global object
-    vals$pd <- rundata %>% filter(pos == sample)
-    
-    # toggle points that are clicked
-    observeEvent(input$runPlot_click, {
-        res <- nearPoints(vals$pd, input$runPlot_click,
-                          threshold=10, allRows=TRUE)
+    # Check if the runlog has been loaded. Then get values.
+    observe({
+        validate(
+            need(rundf(), "There is no rundata.")
+        )
         
-        vals$pd$active <- xor(vals$pd$active, res$selected_)
+        # Get just the data for the input sample.
+        position <- samPos()
+        df <- rundf()
+        vals$pd <- filter(df, pos == position)
         
-        # write active values back to rundata
-        # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
-    })
-    
-    # toggle points that are brushed
-    observeEvent(input$runPlot_brush,{
-        res <- brushedPoints(vals$pd, input$runPlot_brush, allRows=TRUE)
-        vals$pd$active <- xor(vals$pd$active, res$selected_)
-        # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
-    })
-    
-    # reset all points
-    observeEvent(input$exclude_reset, {
-        vals$pd$active <- TRUE
+        # toggle points that are clicked
+        observeEvent(input$runPlot_click, {
+            res <- nearPoints(vals$pd, input$runPlot_click,
+                              threshold=10, allRows=TRUE)
+            
+            vals$pd$active <- xor(vals$pd$active, res$selected_)
+            
+            # write active values back to rundata
+            # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+        })
         
-        # write active values back to run.data
-        # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
-    })
-    
-    # deactivate all runs
-    observeEvent(input$exclude_all, {
-        vals$pd$active <- FALSE
+        # toggle points that are brushed
+        observeEvent(input$runPlot_brush,{
+            res <- brushedPoints(vals$pd, input$runPlot_brush, allRows=TRUE)
+            vals$pd$active <- xor(vals$pd$active, res$selected_)
+            # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+        })
         
-        # write active values back to rundata
-        # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+        # reset all points
+        observeEvent(input$exclude_reset, {
+            vals$pd$active <- TRUE
+            
+            # write active values back to run.data
+            # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+        })
+        
+        # deactivate all runs
+        observeEvent(input$exclude_all, {
+            vals$pd$active <- FALSE
+            
+            # write active values back to rundata
+            # rundata[rundata$pos==vals$pd$pos[1],]$active <<- vals$pd$active
+        })
+        
     })
-    
-    # move to the previous sample in the select box
-    observeEvent(input$back,{
-        positions <- unique(rundata$pos)
-        currentRow <- which(positions==input$samplePicker)
-        if(currentRow>1){
-            newPosition <- positions[currentRow - 1]
-            updateSelectInput(session=session, inputId="samplePicker",
-                              selected = newPosition)
-        }
-    })
-    
-    # move to next sample in select box
-    observeEvent(input$forward,{
-        positions <- unique(rundata$pos)
-        currentRow <- which(positions==input$samplePicker)
-        if(currentRow<length(positions)){
-            newPosition <- positions[currentRow + 1]
-            updateSelectInput(session=session, inputId="samplePicker",
-                              selected = newPosition)
-        }
-    })
-    
     
     output$runPlot <- renderPlot({
         # Plot the run 14C/12C (d13C normalized) data for the chosen sample
         
-        # Check if the runlog has been loaded.
+        # Check first if there is rundata to plot.
         validate(
-            need(positions(), "Please choose a runlog file.")
+            need(rundf(), "There is no rundata.")
         )
         
         # plot kept and excluded points as two separate data sets
         keep    <- vals$pd[ vals$pd$active, , drop=FALSE]
         exclude <- vals$pd[!vals$pd$active, , drop=FALSE]
         
+        # Rename the Y variable in the data frame
+        if(Yval=="C14"){
+            names(keep)[names(keep)=="he14.13"] <- "y"
+            names(keep)[names(keep)=="he14.13.error"] <- "y.error"
+            names(exclude)[names(exclude)=="he14.13"] <- "y"
+            Ytitle <- "14C/13C"
+        } else if(Yval=="C13"){
+            names(keep)[names(keep)=="he13.12"] <- "y"
+            keep$y.error <- rep(0, nrow(keep))
+            names(exclude)[names(exclude)=="he13.12"] <- "y"
+            Ytitle <- "13C/12C"
+        } else { stop("Error in runPlot.R, you chose a bad Yval.")}
+        
+        
         # Check if all runs have been deactivated.
         validate(need(nrow(keep)!=0,"All runs deactivated for this sample"))
         
         # set plot parameters
-        mnAllY <- mean(vals$pd$he14.13)
-        sdAllY <- sd(vals$pd$he14.13)
-        mnKeepY <- mean(keep$he14.13)
-        sdKeepY <- sd(keep$he14.13)
+        mnAllY <- mean(rbind(keep,exclude)$y)
+        sdAllY <- sd(rbind(keep,exclude)$y)
+        mnKeepY <- mean(keep$y)
+        sdKeepY <- sd(keep$y)
         if(nrow(keep)==1){
             mnY <- mnKeepY
             sdY <- mnKeepY*0.05
@@ -106,29 +107,29 @@ runPlot <- function(input, output, session, positions, sample, Yval){
             mnY <- mnAllY
             sdY <- sdAllY
         }
-        maxY <- max(mnY+4*sdY, max(keep$he14.13)*1.02)
-        minY <- min(mnY-4*sdY, min(keep$he14.13)*0.98)
+        maxY <- max(mnY+4*sdY, max(keep$y)*1.02)
+        minY <- min(mnY-4*sdY, min(keep$y)*0.98)
         pTitle <- sprintf("Pos: %s - %s | Mean: %0.4e,  SD: %0.2e",
                           vals$pd[1,]$pos, vals$pd[1,]$smType,
                           mnKeepY, sdKeepY)
         
-        ggplot(keep, aes(x=run,y=he14.13)) + geom_point(size=3) +
+        ggplot(keep, aes(x=run,y=y)) + geom_point(size=3) +
             geom_errorbar(
-                aes(ymin=he14.13-he14.13.error,
-                    ymax=he14.13+he14.13.error),
+                aes(ymin=y-y.error,
+                    ymax=y+y.error),
                 width=0.25
             ) +
             ggtitle(pTitle) +
-            scale_y_continuous(name="14C/13C") +
-            geom_hline(aes(yintercept = mean(he14.13))) +
-            geom_hline(aes(yintercept = mean(he14.13)+2*sd(he14.13)),
+            scale_y_continuous(name=Ytitle) +
+            geom_hline(aes(yintercept = mean(y))) +
+            geom_hline(aes(yintercept = mean(y)+2*sd(y)),
                        color = "blue", linetype=2) +
-            geom_text(aes(0.75,mean(he14.13)+2*sd(he14.13),
+            geom_text(aes(0.75,mean(y)+2*sd(y),
                           label="+2*sigma",vjust=-1,hjust=-0.5),
                       parse=TRUE,color="blue") +
-            geom_hline(aes(yintercept = mean(he14.13)-2*sd(he14.13)),
+            geom_hline(aes(yintercept = mean(y)-2*sd(y)),
                        color = "blue", linetype=2) +
-            geom_text(aes(0.75,mean(he14.13)-2*sd(he14.13),
+            geom_text(aes(0.75,mean(y)-2*sd(y),
                           label="-2*sigma",vjust=1.5,hjust=-0.5),
                       parse=TRUE,color="blue") +
             geom_point(data=exclude, shape=21, size=3,
@@ -140,7 +141,8 @@ runPlot <- function(input, output, session, positions, sample, Yval){
         
     })
     
-    data <- reactive(vals$pd %>% select(run, active))
+    # Good practice to make sure returned results are reactive.
+    finaldf <- reactive({vals$pd})
     
-    return(data)
+    return(finaldf)
 }

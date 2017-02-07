@@ -14,8 +14,6 @@ runPlotUI <- function(id, label="runPlot"){
                                      resetOnNew = TRUE)
         ),
         
-        actionButton(ns("back"), "Previous"),
-        actionButton(ns("forward"),"Next"),
         actionButton(ns("exclude_reset"), "Reactivate All"),
         actionButton(ns("exclude_all"), "Deactivate All")
         
