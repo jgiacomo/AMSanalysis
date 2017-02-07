@@ -40,13 +40,13 @@ runlogFile <- function(input, output, session){
         data
     }, options=list(pageLength=15), rownames=FALSE)
     
-    # Return a vector of the positions from the samples chosen from the runlog.
-    positions <- reactive({
+    # Return the rundata from the runlog.
+    runD <- reactive({
         validate(
             need(input$runlog, "Please choose a runlog file.")
         )
-        unique(rundata$pos)
+        rundata
     })
     
-    return(positions)
+    return(runD)
 }
