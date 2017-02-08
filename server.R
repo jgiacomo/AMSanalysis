@@ -25,15 +25,17 @@ shinyServer(function(input, output, session) {
     # inputs passed to modules need to be wrapped in reactive.
     samplePicker <- reactive({input$samplePicker})
     selectedRuns <- callModule(runPlot,"C14",
-                             rundf=reactive({rundata}),
+                             rundf=myRD,
                              samPos=samplePicker,
-                             Yval="C14")
+                             Yval="he14.13",
+                             Yval.error="he14.13.error",
+                             Ytitle="14C/13C")
     
     # Create plot for cleaning 13C/12C runs.
     selectedD13Cruns <- callModule(runPlot, "C13",
-                                   rundf=reactive({rundata}),
+                                   rundf=myRD,
                                    samPos=samplePicker,
-                                   Yval="C13")
+                                   Yval="he13.12")
     
     # move to the previous sample in the select box
     observeEvent(input$back,{
@@ -61,8 +63,9 @@ shinyServer(function(input, output, session) {
         validate(
             need(myRD(), "No positions")
         )
-        
-        rundata[rundata$run %in% selectedRuns()$run,]$active <<- selectedRuns()$active
+        activeData <- selectedRuns()
+        rundata[rundata$run %in% activeData$run,]$active <<-
+            as.logical(activeData$active)
     })
     
     output$sampleMetaPlot <- renderPlot({
@@ -75,10 +78,13 @@ shinyServer(function(input, output, session) {
         
         # Get the run data for the sample and normalize the currents and
         # transmission
-        rundf <- selectedRuns() %>% mutate(norm.he12C=he12C/max(he12C),
-                                    norm.he13C=he13C/max(he13C),
-                                    norm.trans12C=trans12C/max(trans12C),
-                                    norm.he13.12=he13.12/max(he13.12))
+        rundf <- myRD()
+        
+        rundf <- rundf %>% filter(pos==input$samplePicker) %>%
+            mutate(norm.he12C=he12C/max(he12C),
+                   norm.he13C=he13C/max(he13C),
+                   norm.trans12C=trans12C/max(trans12C),
+                   norm.he13.12=he13.12/max(he13.12))
         
         C12 <- rundf %>% select(run,norm=norm.he12C) %>% mutate(meta="C12")
         C13 <- rundf %>% select(run,norm=norm.he13C) %>% mutate(meta="C13")
@@ -94,8 +100,8 @@ shinyServer(function(input, output, session) {
             scale_color_discrete(name="",
                                  breaks=c("C12","C13","trans12C","he13.12"),
                                  labels=c("he 12C","he 13C","12C Trans","13C/12C")) +
-            scale_x_discrete(name="Run",breaks=selectedRuns()$run,
-                             labels=c(1:nrow(selectedRuns()))) +
+            scale_x_discrete(name="Run",breaks=rundf$run,
+                             labels=c(1:nrow(rundf))) +
             scale_y_continuous(name="Normalized Data")
         p
     })
@@ -105,8 +111,8 @@ shinyServer(function(input, output, session) {
         validate(
             need(myRD(), "Please choose a runlog file.")
         )
-        
-        data <- selectedRuns() %>%
+        data <- myRD()
+        data <- data %>% filter(pos==input$samplePicker) %>%
             dplyr::mutate(he12C.uA = he12C*1e6, he13C.nA = he13C*1e9) %>%
             dplyr::select("Run"=run, "14C/13C"=he14.13,
                           "error"=he14.13.error, "13C/12C"=he13.12,
