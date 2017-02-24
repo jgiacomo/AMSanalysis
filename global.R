@@ -34,3 +34,13 @@
     kElemQ <- 1.6022E-19  # elementary charge
     kVPDB <- 0.0112372  # Vienna PeeDee Belemnite standard 13C/12C ratio
     kOX2ModernFactor <- 0.7459 # Modern = this * normalized 14C/12C of standards
+    
+    # data frame of nominal values for primary and secondary standards
+    nomVals <- data.frame(
+        "name" = c("OX1","OX2","ANU","C6","C1","C2","C3","C4","C5",
+                   "C7","C8","C9"),
+        "pMC" = c(103.98,134.07,150.61,150.61,0,41.14,129.41,0.32,23.05,
+                  49.53,15.03,0.165),
+        "d13C" = c(-19.0,-17.8,-10.8,-10.8,2.42,-8.25,-24.91,-23.96,-25.49,
+                   -14.48,-18.31,-23.9)
+    )
