@@ -31,6 +31,14 @@ shinyServer(function(input, output, session) {
                              Yval.error="he14.13.error",
                              Ytitle="14C/13C")
     
+    # Update active runs in rundata when plot updates
+    observe({
+        activeRuns <- selectedRuns()
+        tempRD <- myRD()
+        tempRD[tempRD$run %in% activeRuns$run,]$active <- activeRuns$active
+        myRD <- reactive({tempRD})
+    })
+    
     # Create plot for cleaning 13C/12C runs.
     selectedD13Cruns <- callModule(runPlot, "C13",
                                    rundf=myRD,
