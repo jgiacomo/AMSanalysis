@@ -25,12 +25,14 @@ runPlot <- function(input, output, session,
         rdf <- rundf()
         if(!is.null(Yval.error)){
             rdf <- rdf %>% filter(pos == samPos()) %>%
-                select(pos,run,smType, Y=get(Yval), Y.error=get(Yval.error)) %>%
-                mutate(active=TRUE)
+                select(pos,run,smType, Y=get(Yval), Y.error=get(Yval.error),
+                       active) # %>%
+                # mutate(active=TRUE)
         } else{
             rdf <- rdf %>% filter(pos == samPos()) %>%
-                select(pos, run, smType, Y=get(Yval)) %>%
-                mutate(Y.error=0, active=TRUE)
+                select(pos, run, smType, Y=get(Yval), active) %>%
+                # mutate(Y.error=0, active=TRUE)
+                mutate(Y.error=0)
         }
         vals$df <- rdf
     })
