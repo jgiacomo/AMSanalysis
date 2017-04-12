@@ -38,12 +38,12 @@ runlogFile <- function(input, output, session){
     # })
     
     # Filter rundata based on selected sample positions
-    rd.filter <- eventReactive(input$runRows,{
+    rd.filter <- eventReactive(input$filterPosButton,{
         samplePos <- numInputToIntegers(input$runRows)  # loaded in global.R
         if(is.integer(samplePos)){
             filter(rd.all(), pos %in% samplePos)
         }
-    })
+    }, ignoreNULL = FALSE)
     
     # Create the rundata data frame
     rd <- reactive({

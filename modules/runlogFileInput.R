@@ -23,7 +23,8 @@ runlogFileInput <- function(id, label="Runlog File"){
                 h4("Enter positions you want to analyze"),
                 h5("e.g. '0-34, 38, 40' or 'all' for all samples"),
                 textInput(ns("runRows"), label="",
-                          placeholder = "0-40, 50, 55")
+                          placeholder = "0-40, 50, 55"),
+                actionButton(ns("filterPosButton"),"Apply")
             ),
             
             mainPanel(
