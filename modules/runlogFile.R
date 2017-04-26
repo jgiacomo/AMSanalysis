@@ -75,12 +75,12 @@ runlogFile <- function(input, output, session){
     })
     
     # Return the rundata from the runlog.
-    runD <- reactive({
-        validate(
-            need(input$runlog, "Please choose a runlog file.")
-        )
-        rd()
-    })
+    # runD <- reactive({
+    #     validate(
+    #         need(input$runlog, "Please choose a runlog file.")
+    #     )
+    #     rd()
+    # })
     
-    return(runD)
+    return(rd)
 }

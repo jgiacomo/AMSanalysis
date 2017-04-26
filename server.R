@@ -33,10 +33,32 @@ shinyServer(function(input, output, session) {
     
     # Update active runs in rundata when plot updates
     observe({
-        activeRuns <- selectedRuns()
-        tempRD <- myRD()
-        tempRD[tempRD$run %in% activeRuns$run,]$active <- activeRuns$active
-        myRD <- reactive({tempRD})
+        validate(
+            need(myRD(),"No runlog loaded.")
+        )
+        validate(
+            need(selectedRuns(), "No selected runs.")
+        )
+        
+        if(nrow(selectedRuns())>0){
+            tempRD <- myRD()
+            tempRD[tempRD$run %in% selectedRuns()$run,]$active <-
+                selectedRuns()$active
+            myRD <<- reactive({tempRD})
+        }
+        # activeRuns <- selectedRuns()
+        # tempRD <- myRD()
+        # tempRD[tempRD$run %in% activeRuns$run,]$active <- activeRuns$active
+        # myRD <<- reactive({tempRD})
+    })
+    
+    # Testing only remove in production
+    observe({
+        validate(
+            need(myRD(), "No positions")
+        )
+        myRD() %>% filter(active == FALSE) %>%
+            select(pos, run, active) %>% print.data.frame()
     })
     
     # Create plot for cleaning 13C/12C runs.
