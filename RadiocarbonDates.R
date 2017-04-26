@@ -6,6 +6,7 @@
 library(doBy)  # used for summary statistics on data.frames
 library(SDMTools)  # weighted means and variance calculations
 library(dplyr)
+library(readr)
 
 # -------------------------source files----------------------------------------
 
