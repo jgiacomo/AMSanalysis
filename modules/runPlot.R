@@ -22,6 +22,8 @@ runPlot <- function(input, output, session,
     
     # Simplify the input data to just the needed values.
     observe({
+        #validate(need(rundf, message="No runlog."))
+        print(paste("rdf =",str(rundf())))
         rdf <- rundf()
         if(!is.null(Yval.error)){
             rdf <- rdf %>% filter(pos == samPos()) %>%
@@ -65,7 +67,7 @@ runPlot <- function(input, output, session,
         
         # Check first if there is rundata to plot.
         validate(
-            need(rundf(), "There is no rundata.")
+            need(rundf, "There is no rundata.")
         )
         
         # plot kept and excluded points as two separate data sets

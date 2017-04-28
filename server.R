@@ -9,13 +9,18 @@ shinyServer(function(input, output, session) {
     myRD <- callModule(runlogFile,"runlog")
     stdrundata <- callModule(standards,"standards",rundf=myRD)
     
+    rvals <- reactiveValues()
+    
     observe({
         validate(
             need(myRD(), "No positions")
         )
         
+        # Create reactive values object to store rundata.
+        rvals$rd <- myRD
+        
         # Update the sample selection now that we have rundata.
-        samplePos <- unique(myRD()$pos)
+        samplePos <- unique(rvals$rd()$pos)
         updateSelectInput(session, inputId="samplePicker",
                           label="Sample",
                           choices=as.character(samplePos))
@@ -25,7 +30,7 @@ shinyServer(function(input, output, session) {
     # inputs passed to modules need to be wrapped in reactive.
     samplePicker <- reactive({input$samplePicker})
     selectedRuns <- callModule(runPlot,"C14",
-                             rundf=myRD,
+                             rundf=rvals$rd,
                              samPos=samplePicker,
                              Yval="he14.13",
                              Yval.error="he14.13.error",
@@ -41,10 +46,10 @@ shinyServer(function(input, output, session) {
         )
         
         if(nrow(selectedRuns())>0){
-            tempRD <- myRD()
+            tempRD <- rvals$rd()
             tempRD[tempRD$run %in% selectedRuns()$run,]$active <-
                 selectedRuns()$active
-            myRD <<- reactive({tempRD})
+            rvals$rd <- reactive({tempRD})
         }
         # activeRuns <- selectedRuns()
         # tempRD <- myRD()
@@ -55,21 +60,21 @@ shinyServer(function(input, output, session) {
     # Testing only remove in production
     observe({
         validate(
-            need(myRD(), "No positions")
+            need(rvals$rd, "No positions")
         )
-        myRD() %>% filter(active == FALSE) %>%
+        rvals$rd() %>% filter(active == FALSE) %>%
             select(pos, run, active) %>% print.data.frame()
     })
     
     # Create plot for cleaning 13C/12C runs.
     selectedD13Cruns <- callModule(runPlot, "C13",
-                                   rundf=myRD,
+                                   rundf=rvals$rd,
                                    samPos=samplePicker,
                                    Yval="he13.12")
     
     # move to the previous sample in the select box
     observeEvent(input$back,{
-        smPos <- unique(myRD()$pos)
+        smPos <- unique(rvals$rd()$pos)
         currentRow <- which(smPos==input$samplePicker)
         if(currentRow>1){
             newPosition <- smPos[currentRow - 1]
@@ -80,7 +85,7 @@ shinyServer(function(input, output, session) {
     
     # move to next sample in select box
     observeEvent(input$forward,{
-        smPos <- unique(myRD()$pos)
+        smPos <- unique(rvals$rd()$pos)
         currentRow <- which(smPos==input$samplePicker)
         if(currentRow<length(smPos)){
             newPosition <- smPos[currentRow + 1]
