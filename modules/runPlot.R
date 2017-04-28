@@ -22,7 +22,7 @@ runPlot <- function(input, output, session,
     
     # Simplify the input data to just the needed values.
     observe({
-        #validate(need(rundf, message="No runlog."))
+        validate(need(rundf, message="No runlog."))
         print(paste("rdf =",str(rundf())))
         rdf <- rundf()
         if(!is.null(Yval.error)){
