@@ -19,6 +19,7 @@ kPileUp <- 3.5E-6  # pile up time constant for detector
 kElemQ <- 1.6022E-19  # elementary charge
 kVPDB <- 0.0112372  # Vienna PeeDee Belemnite standard 13C/12C ratio
 kOX2ModernFactor <- 0.7459  # Modern = this * normalized 14C/12C of standards
+kOX1ModernFactor <- 0.95  # OX1 modern, convert d13C (-19)
 
 # -------------------------define Functions------------------------------------
 
@@ -112,6 +113,20 @@ wt.summary <- function(x, error){
 # Remove all inactive runs from the data
 run.data <- rundata %>% filter(active==TRUE)
 
+# Which standard to use.
+cat("Choose standard\n")
+cat("Enter '1' for OX1\n")
+cat("Enter '2' for OX2\n")
+std.answer <- readline("Choice:")
+if(std.answer=="1"){
+    std.type <- "OX1"
+} else if(std.answer=="2"){
+    std.type <- "OX2"
+} else {
+    stop("Your answer was not recognised.")
+}
+
+
 # Get info about the blanks.
 cat("Machine Blank\n")
 cat("Enter '1' to choose positions for the machine blank.\n")
@@ -174,7 +189,7 @@ run.data$he14.13.error.mb <- run.data$he14.13.error
 for(i in 1:nrow(run.data)){
     # Find the nearest standards
     run <- run.data[i,]$run
-    std.runlist <- NearestStdRuns(run, run.data, "OX2")
+    std.runlist <- NearestStdRuns(run, run.data, std.type)
     run.data[i,]$std.runs <- list(std.runlist)
     std.data <- run.data[run.data$run %in% std.runlist,]
 
@@ -182,7 +197,9 @@ for(i in 1:nrow(run.data)){
     std.regression <- lm(std.data$he13.12 ~ std.data$he13C)
     reg.13.12 <- run.data[i,]$he13C * std.regression$coefficients[2] +
         std.regression$coefficients[1]
-    norm.13.12 <- Convertd13C(-17.8,kVPDB,FALSE) / reg.13.12
+    if(std.type=="OX1"){std.d13C <- -19}
+    if(std.type=="OX2"){std.d13C <- -17.8}
+    norm.13.12 <- Convertd13C(std.d13C,kVPDB,FALSE) / reg.13.12
     smpl.13.12 <- run.data[i,]$he13.12 * norm.13.12
     run.data[i,]$d13C <- Convertd13C(smpl.13.12,kVPDB,TRUE)
     
@@ -195,6 +212,14 @@ run.data$he14.13.d13C <- run.data$he14.13.mb *
                          (-25/1000 + 1)/(run.data$d13C/1000 + 1)
 run.data$he14.13.d13C.error <- run.data$he14.13.error.mb *
                          (-25/1000 + 1)/(run.data$d13C/1000 + 1)
+if(std.type=="OX1"){
+    run.data[run.data$smType=="OX1",]$he14.13.d13C <-
+        run.data[run.data$smType=="OX1",]$he14.13.mb *
+        (-19/1000 + 1)/(run.data[run.data$smType=="OX1",]$d13C/1000 + 1)
+    run.data[run.data$smType=="OX1",]$he14.13.d13C.error <-
+        run.data[run.data$smType=="OX1",]$he14.13.error.mb *
+        (-19/1000 + 1)/(run.data[run.data$smType=="OX1",]$d13C/1000 + 1)
+}
 
 # Get the chemical blank value
 if(cb.answer=="1"){
@@ -205,6 +230,9 @@ if(cb.answer=="1"){
 }
 
 # Subtract chemical blank and calculate the standard normalized pMC
+if(std.type=="OX1"){ModernFactor <- kOX1ModernFactor}
+if(std.type=="OX2"){ModernFactor <- kOX2ModernFactor}
+
 for(i in 1:nrow(run.data)){
     std.runs <- run.data[i,]$std.runs[[1]]
     std.data <- run.data[run.data$run %in% std.runs,]
@@ -213,24 +241,24 @@ for(i in 1:nrow(run.data)){
     
     if(!(run.data[i,]$pos %in% c(mb.pos, cb.pos))){
         run.data[i,]$pMC <- (run.data[i,]$he14.13.d13C - cb.ratio) /
-            (std.results[[1]] - cb.ratio) / kOX2ModernFactor * 100
+            (std.results[[1]] - cb.ratio) / ModernFactor * 100
         
         run.data[i,]$pMC.error <- sqrt(
             (run.data[i,]$he14.13.d13C.error/(std.results[[1]]-cb.ratio) /
-                 kOX2ModernFactor)^2 +
+                 ModernFactor)^2 +
                 (std.results[[2]]*(run.data[i,]$he14.13.d13C-cb.ratio) /
-                     kOX2ModernFactor / (std.results[[1]]-cb.ratio)^2)^2 +
+                     ModernFactor / (std.results[[1]]-cb.ratio)^2)^2 +
                 (cb.error/cb.ratio)^2
         )
     } else{
         run.data[i,]$pMC <- (run.data[i,]$he14.13.d13C) /
-            (std.results[[1]]) / kOX2ModernFactor * 100
+            (std.results[[1]]) / ModernFactor * 100
         
         run.data[i,]$pMC.error <- sqrt(
             (run.data[i,]$he14.13.d13C.error/(std.results[[1]]) /
-                 kOX2ModernFactor)^2 +
+                 ModernFactor)^2 +
                 (std.results[[2]]*(run.data[i,]$he14.13.d13C) /
-                     kOX2ModernFactor / (std.results[[1]])^2)^2
+                     ModernFactor / (std.results[[1]])^2)^2
         )
     }
 }
