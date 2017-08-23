@@ -163,7 +163,10 @@ shinyServer(function(input, output, session) {
                       parse=TRUE,color="blue") +
             geom_point(data=exclude, shape=21, size=3,
                        fill=NA, color="red", alpha=0.75) +
-            coord_cartesian(ylim = c(minY,maxY))
+            coord_cartesian(ylim = c(minY,maxY)) +
+            scale_x_discrete(name="Run",
+                             breaks=vals$pd$run,
+                             label=c(1:nrow(vals$pd)))
         
     })
     
