@@ -1,0 +1,98 @@
+---
+title: "Functionality"
+author: "Jason Giacomo"
+date: "1/1/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Description
+
+This document will outline the functional requirements of this software. It will be presented in outline format. Functionality will be presented as standalone sections when possible so that each can be worked on independently. It would be best if each section of the functionality outline could be completed using functions with appropriate inputs and outputs so that the final working program will simply allow these to be chained together into a cohesive program.
+
+## Outline
+
+* Data Input
+    + Input a runlog file
+        + use a file chooser window
+    + Allow option of importing a results.xls file
+        + this file includes transmission and a few other parameters
+    + Display table of results so user can see what they input
+    + Allow loading of analysis file to import previous anaysis settings
+                
+* Data Selection
+    + Allow user to select which samples to include in the analysis
+        + textbox input of sample positions
+            + allow comma separated entry of individual positions
+            + allow hyphen separated entry of ranges
+    + Update table of results so user sees what they selected
+        
+* Standards Selection
+    + Allow user to select which samples to use as standards
+        + textbox input of standard postions
+            + comma and hyphen separated lists and ranges
+    + Allow users to assign the standard type
+        + Pick from list or manually enter standard name
+    + Allow users to assign nominal values for standards
+        + Autofill for known standard types
+        + Allow manual entry (even for autofill values)
+        + pMC
+        + d13C
+        
+* Blank Selection
+    + Allow user to select which samples to use as blanks (machine and chemical)
+        + textbox input of blank positions
+            + comma and hyphen separated lists and ranges
+
+* QC Selection
+    + Allow user to select which samples to use as quality control samples
+            + textbox input of QC postions
+            + comma and hyphen separated lists and ranges
+    + Allow users to assign the QC type
+        + Pick from list or manually enter QC name
+    + Allow users to assign nominal values for QCs
+        + Autofill for known QC types
+        + Allow manual entry (even for autofill values)
+        + pMC
+        + d13C
+        
+* Analysis Parameters Setup
+    + Allow selection of 14C/12C or 14C/13C evaluation
+    + Allow assignment of chemical blanks to each sample (or no blank, defaults
+        to using all blanks)
+        
+* Standards Outlier Selection
+    + Interactive plots of standard runs
+        + pMC, selectable to show raw 14C/13C or pMC
+        + d13C, selectable to show raw 13C/12C or d13C
+        + click data points to turn on and off
+    + Show plots of current and transmission to help select outliers 
+        (non-interactive)
+    + Show plots of all standards pMC and d13C to help compare standards for
+        outlier removal
+        
+* Blanks Outlier Selection
+    + Interactive plots of blank runs
+        + pMC, selectable to show raw 14C/13C or pMC
+        + d13C, selectable to show raw 13C/12C or d13C
+        + click data points to turn on and off
+    + Show plots of current and transmission to help select outliers 
+        (non-interactive)
+        
+* Sample Outlier Selection
+    + Interactive plots of sample runs
+        + pMC, selectable to show raw 14C/13C or pMC
+        + d13C, selectable to show raw 13C/12C or d13C
+        + click data points to turn on and off
+    + Show plots of current and transmission to help select outliers 
+        (non-interactive)
+        
+* Results Table
+    + Show table of results
+    + Allow saving analysis file (contains all parameters and outlier
+        selections for the analysis)
+    + Allow download of results as csv
+    + Allow printing report
