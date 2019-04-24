@@ -174,7 +174,7 @@ run.data$he14.13.error.mb <- run.data$he14.13.error
 for(i in 1:nrow(run.data)){
     # Find the nearest standards
     run <- run.data[i,]$run
-    std.runlist <- NearestStdRuns(run, run.data, "OX2")
+    std.runlist <- NearestStdRuns(run, run.data, "OXII")
     run.data[i,]$std.runs <- list(std.runlist)
     std.data <- run.data[run.data$run %in% std.runlist,]
 
