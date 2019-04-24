@@ -4,6 +4,7 @@ library(ggplot2)
 library(dplyr)
 
 source("helperFunctions/NECtoRunData.R")
+source("helperFunctions/KIRAMStoRunData.R")
 source("helperFunctions/numInputToIntegers.R")
 
 # Define the server logic of our shiny app.
@@ -34,7 +35,8 @@ shinyServer(function(input, output, session) {
         )
         runlog <- input$runlog$datapath
         result <- input$result$datapath
-        df <- NECtoRunData(runlog, result)
+        # df <- NECtoRunData(runlog, result)
+        df <- KIRAMStoRunData(runlog, result)
         df$he14.12.error <- df$he14.12/sqrt(df$count14C)
         df$he14.13.error <- df$he14.13/sqrt(df$count14C)
         rundata <<- df  # <<- because rundata is outside the server function
