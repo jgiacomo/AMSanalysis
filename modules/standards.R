@@ -16,8 +16,8 @@ standards <- function(input, output, session, rundf){
         updateCheckboxGroupInput(session,"stdPicks",
                                  choices=sort(smplTypes),
                                  inline=TRUE,
-                                 selected=if("OX2" %in% smplTypes){
-                                     "OX2"
+                                 selected=if("OXII" %in% smplTypes){
+                                     "OXII"
                                  })
     })
     

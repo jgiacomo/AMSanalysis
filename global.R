@@ -9,6 +9,7 @@
 # Call utility functions
     utilPath <- "helperFunctions"  # path to utility function directory
     source(file.path(utilPath, "BioMICADAStoRunData.R"))
+    source(file.path(utilPath, "KIRAMStoRunData.R"))
     source(file.path(utilPath, "NECtoRunData.R"))
     source(file.path(utilPath, "numInputToIntegers.R"))
     source(file.path(utilPath, "NearestStdRuns.R"))
