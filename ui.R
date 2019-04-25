@@ -5,8 +5,8 @@ library(shinythemes)
 
 # Define UI for application
 shinyUI(tagList(
-  navbarPage(title=div(img(src="DirectAMS_logo.png",height="35",width="80"),
-                       "AMS Data Analysis Program"),
+  navbarPage(title=div(img(src="Bighorn-Ram_crop.jpg",height="57",width="80"),
+                       "R-AMS Data Analysis Program"),
              theme=shinytheme("cerulean"),
     tabPanel("Data",
          runlogFileInput("runlog", "Runlog File")
