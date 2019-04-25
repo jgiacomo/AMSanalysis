@@ -153,19 +153,38 @@ if(cb.answer=="1"){
     stop("Your answer was not recognised.")
 }
 
+cat("\nDead Time Correction\n")
+cat("Enter '1' to use a dead time correction.\n")
+cat("Enter '2' for no dead time correction.\n")
+dtc.answer <- readline("Choice:")
+if(dtc.answer=="1"){
+    dt.value <- readline("dead time in micro seconds:")
+    dt.value <- as.numeric(dt.value) * 1e-6
+} else if(dtc.answer=="2"){
+    dt.value <- 0  # No dead time correction
+} else {
+    stop("Your answer was not recognised.")
+}
+
 # Setup new columns
 run.data$std.runs <- NA
 run.data$d13C <- NA
-run.data$he14.13.mb <- NA
+run.data$DTC <- NA  # dead time correction = 1/(1-dt*countrate)
+run.data$he14.13.dtc <- NA  # dead time corrected 14C/13C
+run.data$he14.13.mb <- NA   # maching background subtracted 14C/13C
 run.data$he14.13.mb.error <- NA
-run.data$he14.13.d13C <- NA
+run.data$he14.13.d13C <- NA # delta 13C corrected 14C/13C
 run.data$he14.13.d13C.error <- NA
 run.data$pMC <- NA
 run.data$pMC.error <- NA
 
+# Apply the dead time correction (cycles are 0.1 seconds)
+run.data$DTC <- 1 / (1 - dt.value*run.data$count14C/run.data$numCycles*10)
+run.data$he14.13.dtc <- run.data$he14.13 * run.data$DTC
+
 # Subtract the machine blank, but not from the machine blank.
 run.data[!(run.data$pos %in% mb.pos),]$he14.13.mb <-
-    run.data[!(run.data$pos %in% mb.pos),]$he14.13 - mb.ratio
+    run.data[!(run.data$pos %in% mb.pos),]$he14.13.dtc - mb.ratio
 run.data[run.data$pos %in% mb.pos,]$he14.13.mb <-
     run.data[run.data$pos %in% mb.pos,]$he14.13
 run.data$he14.13.error.mb <- run.data$he14.13.error
