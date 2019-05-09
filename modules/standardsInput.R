@@ -14,9 +14,9 @@ standardsInput <- function(id, label="Standards"){
                 h4("by sample type"),
                 checkboxGroupInput(inputId=ns("stdPicks"),
                                    label="Available sample types",
-                                   choices=c("OX2","C7","C2","ANU (C6)",
-                                             "C3","C5","C8"),
-                                   selected="OX2",
+                                   choices=c("OXI","OX1","OXII","OX2","C7","C2",
+                                             "ANU (C6)","C3","C5","C8"),
+                                   selected="OXII",
                                    inline = TRUE),
                 
                 h3("Or"),

@@ -12,6 +12,9 @@ runlogFileInput <- function(id, label="Runlog File"){
         useShinyjs(),
         sidebarLayout(
             sidebarPanel(
+                radioButtons(ns("lab"), "Choose Lab",
+                             choices=c("KIRAMS","NEC"),
+                             selected="KIRAMS",inline=TRUE),
                 fileInput(ns("runlog"), "Choose the runlog file"),
                 radioButtons(ns("resultYN"), "Is there a result.xls file?",
                              choices=c("Yes", "No"),

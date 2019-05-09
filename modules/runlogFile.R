@@ -20,7 +20,8 @@ runlogFile <- function(input, output, session){
         )
         runlog <- input$runlog$datapath
         result <- input$result$datapath
-        df <- NECtoRunData(runlog, result)  # function loaded in global.R
+        if(input$lab=="KIRAMS"){df <- KIRAMStoRunData(runlog)}
+        else{df <- NECtoRunData(runlog, result)}
         df$he14.12.error <- df$he14.12/sqrt(df$count14C)
         df$he14.13.error <- df$he14.13/sqrt(df$count14C)
         df
