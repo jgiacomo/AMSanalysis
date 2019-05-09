@@ -11,6 +11,7 @@ library(readr)
 # -------------------------source files----------------------------------------
 
 source("helperFunctions/numInputToIntegers.R")
+source("helperFunctions/NearestStdRuns.R")
 
 # -------------------------define constants------------------------------------
 
@@ -23,53 +24,53 @@ kOX1ModernFactor <- 0.95  # OX1 modern, convert d13C (-19)
 
 # -------------------------define Functions------------------------------------
 
-NearestStdRuns <- function(run, data.set, sampletype) {
-    # This function takes as input the run from which you wish to find the 
-    # nearest standard runs and the data.frame you wish to work with. The 
-    # function returns a vector containing the run numbers for the nearest 
-    # standard measurements. It will find the nearest 6 standard runs, both 
-    # forwards and back, or less if there are less than 6 standard runs. It 
-    # will also exclude the run which is input in case the run you are 
-    # searching from is a standard measurement itself. The output can be used 
-    # to determine the correct normalization for any unknown sample or even a 
-    # standard as the run being normalized will not be included in the 
-    # calculation of the normalization thereby preventing self-normalized 
-    # results.
-    
-    # get the run numbers for the standards assuming the data.frame has a RUN
-    # column.
-    std.runs <- data.set[data.set$smType == sampletype,]
-    
-    # use only active standard runs
-    std.runs <- std.runs[std.runs$active,]
-    
-    # remove the run specified from the standard runs if it is a standard
-    std.runs <- std.runs[std.runs$run != run, ]
-    
-    # find the date and time of the run specified
-    run.time <- data.set[data.set$run == run, ]$dateTime
-    
-    # find the difference between the time of the run and all standard runs
-    std.runs$TimeDiff <- abs(as.numeric(difftime(std.runs$dateTime, run.time)))
-    
-    std.runlist <- c()  # initialize a list to hold the runs
-    
-    # set loop count to number of rows in std.runs or 6 whichever is smaller
-    if(nrow(std.runs) < 6) {
-        count <- nrow(std.runs)
-    }
-    else {
-        count = 6
-    }
-    
-    # find nearest standard run then remove that run and repeat to count
-    for(i in 1:count) {
-        min.run <- std.runs[which.min(std.runs$TimeDiff), ]$run
-        std.runlist <- c(std.runlist, as.character(min.run))
-        std.runs <- std.runs[std.runs$run != min.run, ]
-    }
-    return(std.runlist)
-}
+# NearestStdRuns <- function(run, data.set, sampletype) {
+#     # This function takes as input the run from which you wish to find the 
+#     # nearest standard runs and the data.frame you wish to work with. The 
+#     # function returns a vector containing the run numbers for the nearest 
+#     # standard measurements. It will find the nearest 6 standard runs, both 
+#     # forwards and back, or less if there are less than 6 standard runs. It 
+#     # will also exclude the run which is input in case the run you are 
+#     # searching from is a standard measurement itself. The output can be used 
+#     # to determine the correct normalization for any unknown sample or even a 
+#     # standard as the run being normalized will not be included in the 
+#     # calculation of the normalization thereby preventing self-normalized 
+#     # results.
+#     
+#     # get the run numbers for the standards assuming the data.frame has a RUN
+#     # column.
+#     std.runs <- data.set[data.set$smType == sampletype,]
+#     
+#     # use only active standard runs
+#     std.runs <- std.runs[std.runs$active,]
+#     
+#     # remove the run specified from the standard runs if it is a standard
+#     std.runs <- std.runs[std.runs$run != run, ]
+#     
+#     # find the date and time of the run specified
+#     run.time <- data.set[data.set$run == run, ]$dateTime
+#     
+#     # find the difference between the time of the run and all standard runs
+#     std.runs$TimeDiff <- abs(as.numeric(difftime(std.runs$dateTime, run.time)))
+#     
+#     std.runlist <- c()  # initialize a list to hold the runs
+#     
+#     # set loop count to number of rows in std.runs or 6 whichever is smaller
+#     if(nrow(std.runs) < 6) {
+#         count <- nrow(std.runs)
+#     }
+#     else {
+#         count = 6
+#     }
+#     
+#     # find nearest standard run then remove that run and repeat to count
+#     for(i in 1:count) {
+#         min.run <- std.runs[which.min(std.runs$TimeDiff), ]$run
+#         std.runlist <- c(std.runlist, as.character(min.run))
+#         std.runs <- std.runs[std.runs$run != min.run, ]
+#     }
+#     return(std.runlist)
+# }
 
 Convertd13C <- function(c13.sample, c13.vpdb, bool = TRUE) {
     # This function takes the sample 13C/12C ratio or the sample d13C and the 
@@ -115,8 +116,8 @@ run.data <- rundata %>% filter(active==TRUE)
 
 # Which standard to use.
 cat("Choose standard\n")
-cat("Enter '1' for OX1\n")
-cat("Enter '2' for OX2\n")
+cat("Enter '1' for OXI (OX1)\n")
+cat("Enter '2' for OXII (OX2)\n")
 std.answer <- readline("Choice:")
 if(std.answer=="1"){
     std.type <- "OX1"
@@ -168,30 +169,55 @@ if(cb.answer=="1"){
     stop("Your answer was not recognised.")
 }
 
+cat("\nDead Time Correction\n")
+cat("Enter '1' to use a dead time correction.\n")
+cat("Enter '2' for no dead time correction.\n")
+dtc.answer <- readline("Choice:")
+if(dtc.answer=="1"){
+    dt.value <- readline("dead time in micro seconds:")
+    dt.value <- as.numeric(dt.value) * 1e-6
+} else if(dtc.answer=="2"){
+    dt.value <- 0  # No dead time correction
+} else {
+    stop("Your answer was not recognised.")
+}
+
 # Setup new columns
 run.data$std.runs <- NA
 run.data$d13C <- NA
-run.data$he14.13.mb <- NA
+run.data$DTC <- NA  # dead time correction = 1/(1-dt*countrate)
+run.data$he14.13.dtc <- NA  # dead time corrected 14C/13C
+run.data$he14.13.mb <- NA   # maching background subtracted 14C/13C
 run.data$he14.13.mb.error <- NA
-run.data$he14.13.d13C <- NA
+run.data$he14.13.d13C <- NA # delta 13C corrected 14C/13C
 run.data$he14.13.d13C.error <- NA
 run.data$pMC <- NA
 run.data$pMC.error <- NA
 
+# Apply the dead time correction (cycles are 0.1 seconds)
+run.data$DTC <- 1 / (1 - dt.value*run.data$count14C/run.data$numCycles*10)
+run.data$he14.13.dtc <- run.data$he14.13 * run.data$DTC
+
 # Subtract the machine blank, but not from the machine blank.
 run.data[!(run.data$pos %in% mb.pos),]$he14.13.mb <-
-    run.data[!(run.data$pos %in% mb.pos),]$he14.13 - mb.ratio
+    run.data[!(run.data$pos %in% mb.pos),]$he14.13.dtc - mb.ratio
 run.data[run.data$pos %in% mb.pos,]$he14.13.mb <-
     run.data[run.data$pos %in% mb.pos,]$he14.13
 run.data$he14.13.error.mb <- run.data$he14.13.error
 
 # For each run, find the nearest standard runs and d13C values
+if(std.type=="OX1"){
+    std.pos <- unique(run.data$pos[run.data$smType %in% c("OX1","OXI")])
+} else{
+    std.pos <- unique(run.data$pos[run.data$smType %in% c("OX2","OXII")])
+}
+
 for(i in 1:nrow(run.data)){
     # Find the nearest standards
     run <- run.data[i,]$run
-    std.runlist <- NearestStdRuns(run, run.data, std.type)
+    std.runlist <- NearestStdRuns(run.data, run, std.pos, n=6)
     run.data[i,]$std.runs <- list(std.runlist)
-    std.data <- run.data[run.data$run %in% std.runlist,]
+    std.data <- run.data[run.data$run %in% std.runlist$run,]
 
     # Calculate normalized d13C results
     std.regression <- lm(std.data$he13.12 ~ std.data$he13C)
@@ -234,7 +260,7 @@ if(std.type=="OX1"){ModernFactor <- kOX1ModernFactor}
 if(std.type=="OX2"){ModernFactor <- kOX2ModernFactor}
 
 for(i in 1:nrow(run.data)){
-    std.runs <- run.data[i,]$std.runs[[1]]
+    std.runs <- run.data$std.runs[[i]]$run
     std.data <- run.data[run.data$run %in% std.runs,]
     std.results <- wt.summary(std.data$he14.13.d13C,
                               std.data$he14.13.d13C.error)
@@ -269,7 +295,8 @@ finalResults <- run.data %>% group_by(pos,analysis,label,smType) %>%
               mn.d13C=mean(d13C),d13C.error=sd(d13C)/sqrt(n()-1),
               mn.pMC=mean(pMC),pMC.error=sd(pMC)/sqrt(n()-1)) %>%
     mutate(Age=round(-8033*log(mn.pMC/100),0),
-           Age.error=round(8033*pMC.error/mn.pMC,0))
+           Age.error=round(8033*pMC.error/mn.pMC,0)) %>%
+    rename(d13C=mn.d13C,pMC=mn.pMC)
 
 
 filename <- paste0(finalResults[1,]$analysis,"_finalResults.csv")
