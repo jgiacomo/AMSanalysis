@@ -9,6 +9,7 @@
 # Call utility functions
     utilPath <- "helperFunctions"  # path to utility function directory
     source(file.path(utilPath, "BioMICADAStoRunData.R"))
+    source(file.path(utilPath, "KIRAMStoRunData.R"))
     source(file.path(utilPath, "NECtoRunData.R"))
     source(file.path(utilPath, "numInputToIntegers.R"))
     source(file.path(utilPath, "NearestStdRuns.R"))
@@ -37,10 +38,10 @@
     
     # data frame of nominal values for primary and secondary standards
     nomVals <- data.frame(
-        "name" = c("OX1","OX2","ANU","C6","C1","C2","C3","C4","C5",
+        "name" = c("OX1","OXI","OX2","OXII","ANU","C6","C1","C2","C3","C4","C5",
                    "C7","C8","C9"),
-        "pMC" = c(103.98,134.07,150.61,150.61,0,41.14,129.41,0.32,23.05,
-                  49.53,15.03,0.165),
-        "d13C" = c(-19.0,-17.8,-10.8,-10.8,2.42,-8.25,-24.91,-23.96,-25.49,
-                   -14.48,-18.31,-23.9)
+        "pMC" = c(103.98,103.98,134.07,134.07,150.61,150.61,0,41.14,129.41,0.32,
+                  23.05,49.53,15.03,0.165),
+        "d13C" = c(-19.0,-19.0,-17.8,-17.8,-10.8,-10.8,2.42,-8.25,-24.91,-23.96,
+                   -25.49,-14.48,-18.31,-23.9)
     )
