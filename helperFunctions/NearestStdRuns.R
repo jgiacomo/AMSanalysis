@@ -17,7 +17,7 @@ NearestStdRuns <- function(df, Run, standardPos, n=6){
     
     # Check that run times are formatted as date times (POSIXlt) and exit if not
     if(!is(df$dateTime, "POSIXct")){
-        stop("Error: runTime not of class POSIXct in function NearestStdRuns.")
+        stop("Error: dateTime not of class POSIXct in function NearestStdRuns.")
     }
     
     # Parse out the standards data keeping only active runs
@@ -26,7 +26,7 @@ NearestStdRuns <- function(df, Run, standardPos, n=6){
     stdRuns <- stdRuns[stdRuns$run != Run,]
     
     # Find the run time for the run in question
-    smplRT <- df %>% filter(run == Run) %>% select(runTime) %>% pull()
+    smplRT <- df %>% filter(run == Run) %>% select(dateTime) %>% pull()
     
     # Find the time differences (in seconds)
     stdRuns$timeDiff <- abs(difftime(stdRuns$dateTime, smplRT, units="secs"))
