@@ -3,7 +3,6 @@
 
 # -------------------------include libraries-----------------------------------
 
-library(doBy)  # used for summary statistics on data.frames
 library(SDMTools)  # weighted means and variance calculations
 library(dplyr)
 library(readr)
@@ -23,54 +22,6 @@ kOX2ModernFactor <- 0.7459  # Modern = this * normalized 14C/12C of standards
 kOX1ModernFactor <- 0.95  # OX1 modern, convert d13C (-19)
 
 # -------------------------define Functions------------------------------------
-
-# NearestStdRuns <- function(run, data.set, sampletype) {
-#     # This function takes as input the run from which you wish to find the 
-#     # nearest standard runs and the data.frame you wish to work with. The 
-#     # function returns a vector containing the run numbers for the nearest 
-#     # standard measurements. It will find the nearest 6 standard runs, both 
-#     # forwards and back, or less if there are less than 6 standard runs. It 
-#     # will also exclude the run which is input in case the run you are 
-#     # searching from is a standard measurement itself. The output can be used 
-#     # to determine the correct normalization for any unknown sample or even a 
-#     # standard as the run being normalized will not be included in the 
-#     # calculation of the normalization thereby preventing self-normalized 
-#     # results.
-#     
-#     # get the run numbers for the standards assuming the data.frame has a RUN
-#     # column.
-#     std.runs <- data.set[data.set$smType == sampletype,]
-#     
-#     # use only active standard runs
-#     std.runs <- std.runs[std.runs$active,]
-#     
-#     # remove the run specified from the standard runs if it is a standard
-#     std.runs <- std.runs[std.runs$run != run, ]
-#     
-#     # find the date and time of the run specified
-#     run.time <- data.set[data.set$run == run, ]$dateTime
-#     
-#     # find the difference between the time of the run and all standard runs
-#     std.runs$TimeDiff <- abs(as.numeric(difftime(std.runs$dateTime, run.time)))
-#     
-#     std.runlist <- c()  # initialize a list to hold the runs
-#     
-#     # set loop count to number of rows in std.runs or 6 whichever is smaller
-#     if(nrow(std.runs) < 6) {
-#         count <- nrow(std.runs)
-#     }
-#     else {
-#         count = 6
-#     }
-#     
-#     # find nearest standard run then remove that run and repeat to count
-#     for(i in 1:count) {
-#         min.run <- std.runs[which.min(std.runs$TimeDiff), ]$run
-#         std.runlist <- c(std.runlist, as.character(min.run))
-#         std.runs <- std.runs[std.runs$run != min.run, ]
-#     }
-#     return(std.runlist)
-# }
 
 Convertd13C <- function(c13.sample, c13.vpdb, bool = TRUE) {
     # This function takes the sample 13C/12C ratio or the sample d13C and the 
@@ -146,6 +97,7 @@ if(mb.answer=="1"){
     mb.pos <- 1000  # Unrealistic position since there is presumably no MB.
 } else if(mb.answer=="3"){
     mb.ratio <- 0
+    mb.pos <- 1000  # Unrealistic position since there is presumably no MB.
 } else {
     stop("Your answer was not recognised.")
 }
