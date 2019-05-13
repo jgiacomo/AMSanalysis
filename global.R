@@ -6,6 +6,15 @@
 # functions and global objects are loaded once for the Shiny app and do not need
 # to be loaded for each session or call.
 
+library(SDMTools)
+library(tidyverse)
+library(shiny)
+library(shinyjs)
+library(shinythemes)
+library(shinyWidgets)
+library(DT)
+
+
 # Call utility functions
     utilPath <- "helperFunctions"  # path to utility function directory
     source(file.path(utilPath, "BioMICADAStoRunData.R"))
@@ -34,7 +43,13 @@
     # define constants to be used in analysis
     kElemQ <- 1.6022E-19  # elementary charge
     kVPDB <- 0.0112372  # Vienna PeeDee Belemnite standard 13C/12C ratio
-    kOX2ModernFactor <- 0.7459 # Modern = this * normalized 14C/12C of standards
+    kOX2ModernFactor <- 0.7459  # Modern = this * normalized 14C/12C of standards
+    kOX1ModernFactor <- 0.95  # OX1 modern, convert d13C (-19)
+    
+    bioMICADASDeadTime <- 5.2E-6  # dead time of detector
+    bioMICADASPileUp <- 3.5E-6  # pile up time constant for detector
+    
+    KIRAMSdeadtime <- 13  # dead time of detector in microseconds
     
     # data frame of nominal values for primary and secondary standards
     nomVals <- data.frame(
