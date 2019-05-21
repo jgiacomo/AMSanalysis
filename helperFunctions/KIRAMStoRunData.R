@@ -13,6 +13,9 @@ KIRAMStoRunData <- function(runlogFile, resultFile = NULL){
     library(readr)
     library(stringr)
     
+    #Set locale to US since the NEC datetime strings are in US locale format
+    Sys.setlocale("LC_TIME","US")
+    
     ############################################################################
     ############################# FUNCTIONS ####################################
     ############################################################################
