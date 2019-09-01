@@ -11,6 +11,9 @@ shinyUI(tagList(
     tabPanel("Data",
          sidebarLayout(
              sidebarPanel(
+                 radioButtons("labPick","Which Lab?",
+                              choices=c("KIRAMS","DirectAMS"),
+                              inline=TRUE),
                  fileInput("runlog", "Choose the runlog file"),
                  radioButtons("resultYN", "Is there a result.xls file?",
                               choices=c("Yes", "No"),

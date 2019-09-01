@@ -35,8 +35,12 @@ shinyServer(function(input, output, session) {
         )
         runlog <- input$runlog$datapath
         result <- input$result$datapath
-        # df <- NECtoRunData(runlog, result)
-        df <- KIRAMStoRunData(runlog, result)
+        if(input$labPick=="KIRAMS"){
+            df <- KIRAMStoRunData(runlog, result)
+        }
+        if(input$labPick=="DirectAMS"){
+            df <- NECtoRunData(runlog, result)
+        }
         df$he14.12.error <- df$he14.12/sqrt(df$count14C)
         df$he14.13.error <- df$he14.13/sqrt(df$count14C)
         rundata <<- df  # <<- because rundata is outside the server function
